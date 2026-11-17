@@ -1,0 +1,7 @@
+iso3,iso2,name,region,independent
+ESP,ES,Spain,Europe,true
+FRA,FR,France,Europe,true
+DEU,DE,Germany,Europe,true
+ITA,IT,Italy,Europe,true
+PRT,PT,Portugal,Europe,true
+WLD,1W,World,Aggregates,false

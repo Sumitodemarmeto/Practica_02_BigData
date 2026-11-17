@@ -1,0 +1,4 @@
+# Prototipos Práctica 2 — entorno de aprendizaje (no es el starter del entregable)
+pandas>=2.0,<3.0
+pyarrow>=14.0
+pyspark>=4.0

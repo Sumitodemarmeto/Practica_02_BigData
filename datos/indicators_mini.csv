@@ -1,0 +1,19 @@
+iso3,indicator_id,indicator_label,year,value,unit,source_id
+ESP,NY.GDP.PCAP.CD,GDP per capita (current US$),1983,4801.2,USD,worldbank_gdp
+ESP,NY.GDP.PCAP.CD,GDP per capita (current US$),1987,8756.4,USD,worldbank_gdp
+FRA,NY.GDP.PCAP.CD,GDP per capita (current US$),1983,10502.1,USD,worldbank_gdp
+FRA,NY.GDP.PCAP.CD,GDP per capita (current US$),1987,16210.8,USD,worldbank_gdp
+DEU,NY.GDP.PCAP.CD,GDP per capita (current US$),2004,34196.5,USD,worldbank_gdp
+ESP,NY.GDP.PCAP.CD,GDP per capita (current US$),2004,24900.3,USD,worldbank_gdp
+ESP,SP.POP.TOTL,Population total,1983,38148000,persons,worldbank_pop
+ESP,SP.POP.TOTL,Population total,2004,42692000,persons,worldbank_pop
+FRA,SP.POP.TOTL,Population total,1983,54735000,persons,worldbank_pop
+FRA,SP.POP.TOTL,Population total,2004,62345000,persons,worldbank_pop
+DEU,SP.POP.TOTL,Population total,2010,81770000,persons,worldbank_pop
+ESP,SP.DYN.LE00.IN,Life expectancy at birth,2010,81.9,years,worldbank_health
+FRA,SP.DYN.LE00.IN,Life expectancy at birth,2010,81.7,years,worldbank_health
+DEU,SP.DYN.LE00.IN,Life expectancy at birth,2020,80.9,years,worldbank_health
+ESP,SP.DYN.LE00.IN,Life expectancy at birth,2020,82.3,years,worldbank_health
+ITA,NY.GDP.PCAP.CD,GDP per capita (current US$),2020,31914.0,USD,worldbank_gdp
+PRT,SP.POP.TOTL,Population total,2020,10297000,persons,worldbank_pop
+ESP,NY.GDP.PCAP.CD,GDP per capita (current US$),1995,,USD,worldbank_gdp

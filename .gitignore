@@ -11,3 +11,17 @@ cards/*
 !cards/.gitkeep
 informe/*
 !informe/.gitkeep
+
+.venv/
+__pycache__/
+*.pyc
+out/
+.spark_event_logs/
+metastore_db/
+derby.log
+spark-warehouse/
+.ipynb_checkpoints/
+
+# El monorepo ignora *.csv; estos mini-datos sí van al kit didáctico
+!datos/
+!datos/*.csv
