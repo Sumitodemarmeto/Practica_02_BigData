@@ -18,21 +18,14 @@ from .transform import run_transform
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="ETL observatorio país (P1)")
-    parser.add_argument(
-        "--skip-extract",
-        action="store_true",
-        help="No descargar; transformar desde data/raw/ existente",
-    )
-    parser.add_argument(
-        "--parquet",
-        action="store_true",
-        help="Además del SQLite, escribir Parquet en data/serving/",
-    )
+    parser = argparse.ArgumentParser(description="ETL observatorio país (P2)")
+    parser.add_argument("--skip-extract", action="store_true")
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--parquet", action="store_true")
     args = parser.parse_args(argv)
 
     if not args.skip_extract:
-        run_extract()
+        run_extract(force=args.force)
     else:
         print("[pipeline] extract omitido (--skip-extract)")
 

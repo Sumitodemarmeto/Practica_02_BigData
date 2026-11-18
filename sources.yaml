@@ -9,6 +9,14 @@
 code_equivalences:
   XKX: UNK        # Kosovo
 
+country_criterion:
+  source: countries_profile
+  accept:
+    independent: true
+  exclude_codes: []
+
+focus_countries: []
+
 sources:
   - id: countries_profile
     name: mledoze — perfil de países
@@ -56,18 +64,18 @@ sources:
       indicator_label: Life expectancy at birth, total (years)
       unit: years
 
-  # - id: worldbank_co2
-  #   name: World Bank — emisiones de CO2 per cápita (EN.ATM.CO2E.PC)
-  #   url: https://api.worldbank.org/v2/country/all/indicator/EN.ATM.CO2E.PC?format=json
-  #   paginated: true
-  #   per_page: 1000
-  #   format: json
-  #   role: indicator
-  #   transformer: worldbank_indicator
-  #   meta:
-  #     indicator_id: EN.ATM.CO2E.PC
-  #     indicator_label: CO2 emissions (metric tons per capita)
-  #     unit: metric tons per capita
+  - id: worldbank_co2
+    name: World Bank — emisiones de CO2 per cápita (EN.GHG.CO2.PC.CE.AR5)
+    url: https://api.worldbank.org/v2/country/all/indicator/EN.GHG.CO2.PC.CE.AR5?format=json
+    paginated: true
+    per_page: 1000
+    format: json
+    role: indicator
+    transformer: worldbank_indicator
+    meta:
+      indicator_id: EN.GHG.CO2.PC.CE.AR5
+      indicator_label: CO2 emissions per capita (metric tons, AR5)
+      unit: metric tons per capita
 
   - id: worldbank_internet
     name: World Bank — uso de Internet (IT.NET.USER.ZS)

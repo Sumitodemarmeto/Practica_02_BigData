@@ -36,10 +36,31 @@ class FocusCountry:
 
 
 @dataclass
+class CountryCriterion:
+    """Criterio declarativo de 'qué es un país' (desde sources.yaml)."""
+
+    source: str = "countries_profile"
+    accept: dict[str, Any] = field(default_factory=dict)
+    exclude_codes: list[str] = field(default_factory=list)
+
+    def accept_entity(self, profile_item: dict) -> bool:
+        iso3 = profile_item.get("cca3")
+        if not iso3:
+            return False
+        if iso3 in self.exclude_codes:
+            return False
+        for key, expected in self.accept.items():
+            if profile_item.get(key) != expected:
+                return False
+        return True
+
+
+@dataclass
 class Config:
     sources: list[Source]
-    focus_countries: list[FocusCountry] = field(default_factory=list)  # ya no se usa
+    focus_countries: list[FocusCountry] = field(default_factory=list)
     code_equivalences: dict[str, str] = field(default_factory=dict)
+    country_criterion: CountryCriterion = field(default_factory=CountryCriterion)
 
 
 def load_config(path=SOURCES_YAML) -> Config:
@@ -49,4 +70,5 @@ def load_config(path=SOURCES_YAML) -> Config:
         sources=[Source(**s) for s in raw.get("sources", [])],
         focus_countries=[FocusCountry(**c) for c in raw.get("focus_countries", [])],
         code_equivalences=raw.get("code_equivalences", {}),
+        country_criterion=CountryCriterion(**raw.get("country_criterion", {})),
     )
