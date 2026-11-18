@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import json
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -48,8 +49,7 @@ def _download_paginated(url: str, per_page: int, dest: Path) -> None:
     # Mismo formato que devuelve el Banco Mundial: [meta, [registros]]
     dest.write_text(json.dumps([meta, records]), encoding="utf-8")
 
-
-def extract_source(source: Source, cfg: Config) -> list[dict]:
+def extract_source(source: Source, cfg: Config, run_id: str) -> list[dict]:
     now = datetime.now(timezone.utc).isoformat()
     url = source.resolve_url()
     filename = f"{source.id}.{source.format}"
@@ -69,30 +69,32 @@ def extract_source(source: Source, cfg: Config) -> list[dict]:
             status, note = 0, str(exc)
 
     return [{
+        "run_id": run_id,
         "timestamp_utc": now, "source_id": source.id, "url": url,
         "http_status": status, "bytes": nbytes, "filename": filename,
         "iso2": "", "iso3": "", "note": note,
     }]
 
-
 def run_extract(cfg: Config | None = None) -> Path:
     cfg = cfg or load_config()
     ensure_dirs()
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:6]
     all_rows: list[dict] = []
     for source in cfg.sources:
         print(f"[extract] {source.id} — {source.name}")
-        all_rows.extend(extract_source(source, cfg))
+        all_rows.extend(extract_source(source, cfg, run_id))
 
-    fieldnames = ["timestamp_utc", "source_id", "url", "http_status", "bytes",
-                  "filename", "iso2", "iso3", "note"]
-    with MANIFEST.open("w", encoding="utf-8", newline="") as f:
+    fieldnames = ["run_id", "timestamp_utc", "source_id", "url", "http_status",
+                  "bytes", "filename", "iso2", "iso3", "note"]
+    nuevo = not MANIFEST.exists()
+    with MANIFEST.open("a", encoding="utf-8", newline="") as f:   # "a": no borra historia
         writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
+        if nuevo:
+            writer.writeheader()
         writer.writerows(all_rows)
 
-    print(f"[extract] manifiesto → {MANIFEST}")
+    print(f"[extract] manifiesto (run {run_id}) → {MANIFEST}")
     return MANIFEST
-
 
 if __name__ == "__main__":
     run_extract()

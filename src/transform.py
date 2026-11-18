@@ -17,6 +17,8 @@ import json
 from pathlib import Path
 from typing import Callable
 
+import shutil
+
 import pandas as pd
 
 from .config import Config, Source, load_config
@@ -180,6 +182,49 @@ TRANSFORMERS: dict[str, Transformer] = {
     "generic_passthrough": transform_generic_passthrough,
 }
 
+def _write_clean(table: str, df: pd.DataFrame) -> None:
+    if table == "indicators":
+        df["year"] = df["year"].astype("int64")
+        df["value"] = pd.to_numeric(df["value"], errors="coerce").astype("float64")
+        key = ["iso3", "indicator_id", "year", "source_id"]
+        if df.duplicated(subset=key).any():
+            raise ValueError(f"Clave duplicada en indicators: {key}")
+        dest = CLEAN / "indicators"
+        if dest.exists():
+            shutil.rmtree(dest)
+        df.to_parquet(dest, index=False, partition_cols=["indicator_id"])
+    else:
+        dest = CLEAN / f"{table}.parquet"
+        df.to_parquet(dest, index=False)
+    print(f"[transform] {table}: {len(df)} filas → {dest}")
+
+def build_excluded(cfg: Config) -> pd.DataFrame:
+    profile = _read_json(RAW / "countries_profile.json")
+    aceptados = {i["cca3"] for i in profile if i.get("independent")}
+    en_perfil = {i["cca3"] for i in profile}
+    rows: dict[str, dict] = {}
+
+    for i in profile:
+        if not i.get("independent"):
+            rows[i["cca3"]] = {
+                "iso3": i["cca3"], "name": (i.get("name") or {}).get("common"),
+                "motivo": "no independiente (mledoze)", "fuente": "countries_profile",
+            }
+
+    for s in cfg.sources:
+        if s.transformer != "worldbank_indicator":
+            continue
+        for rec in _read_json(RAW / f"{s.id}.json")[1]:
+            code = rec.get("countryiso3code") or ""
+            iso3 = cfg.code_equivalences.get(code, code)
+            key = iso3 or rec["country"]["value"]
+            if iso3 in aceptados or iso3 in en_perfil or key in rows:
+                continue
+            rows[key] = {
+                "iso3": iso3, "name": rec["country"]["value"],
+                "motivo": "agregado WB o entidad sin perfil", "fuente": s.id,
+            }
+    return pd.DataFrame(rows.values())
 
 def run_transform(cfg: Config | None = None) -> dict[str, pd.DataFrame]:
     cfg = cfg or load_config()
@@ -201,22 +246,27 @@ def run_transform(cfg: Config | None = None) -> dict[str, pd.DataFrame]:
     merged: dict[str, pd.DataFrame] = {}
     for table, parts in buckets.items():
         df = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
-        dest = CLEAN / f"{table}.csv"
-        df.to_csv(dest, index=False)
-        print(f"[transform] {table}: {len(df)} filas → {dest}")
+        _write_clean(table, df)
         merged[table] = df
 
-    # Cobertura del cruce (huérfanos perfil → indicadores)
     if "countries" in merged and "indicators" in merged:
-        have = set(merged["indicators"]["iso3"].dropna().unique())
-        profile = set(merged["countries"]["iso3"].dropna().unique())
-        orphans = sorted(profile - have)
-        report = pd.DataFrame({"iso3": orphans, "missing_in": "indicators"})
-        report_path = CLEAN / "join_orphans.csv"
-        report.to_csv(report_path, index=False)
-        print(f"[transform] huérfanos del join: {len(orphans)} → {report_path}")
+        ind = merged["indicators"]
+        ok = ind[ind["value"].notna()]
+        con_dato = set(zip(ok["iso3"], ok["source_id"]))
+        rows = []
+        for iso3 in merged["countries"]["iso3"]:
+            for s in cfg.sources:
+                if s.transformer == "worldbank_indicator" and (iso3, s.id) not in con_dato:
+                    rows.append({"iso3": iso3, "source_id": s.id,
+                                 "indicator_id": (s.meta or {}).get("indicator_id"),
+                                 "missing_in": "indicators"})
+        report = pd.DataFrame(rows, columns=["iso3", "source_id", "indicator_id", "missing_in"])
+        report.to_csv(CLEAN / "join_orphans.csv", index=False)
+        print(f"[transform] huérfanos por fuente: {len(report)}")
 
-    return merged
+        excl = build_excluded(cfg)
+        excl.to_csv(CLEAN / "excluded_entities.csv", index=False)
+        print(f"[transform] entidades excluidas: {len(excl)}")
 
 
 if __name__ == "__main__":

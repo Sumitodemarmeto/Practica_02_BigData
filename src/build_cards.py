@@ -56,12 +56,12 @@ def _card_markdown(iso3: str, countries: pd.DataFrame, languages: pd.DataFrame,
             & indicators["value"].notna()
         ]["value"]
         if not peer_vals.empty:
-            mean_v = peer_vals.astype(float).mean()
+            med_v = peer_vals.astype(float).median()
             own = float(first["value"])
             comparative = (
-                f"Respecto a la media de **{region}** en `{ind_id}` ({year}) "
-                f"({mean_v:,.2f}): este país está en **{own:,.2f}** "
-                f"({'por encima' if own > mean_v else 'por debajo o igual'})."
+                f"Respecto a la mediana de **{region}** en `{ind_id}` ({year}) "
+                f"({med_v:,.2f}): este país está en **{own:,.2f}** "
+                f"({'por encima' if own > med_v else 'por debajo o igual'})."
             )
 
     return f"""# Ficha país — {c['name_common']} ({iso3})

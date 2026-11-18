@@ -55,3 +55,42 @@ sources:
       indicator_id: SP.DYN.LE00.IN
       indicator_label: Life expectancy at birth, total (years)
       unit: years
+
+  # - id: worldbank_co2
+  #   name: World Bank — emisiones de CO2 per cápita (EN.ATM.CO2E.PC)
+  #   url: https://api.worldbank.org/v2/country/all/indicator/EN.ATM.CO2E.PC?format=json
+  #   paginated: true
+  #   per_page: 1000
+  #   format: json
+  #   role: indicator
+  #   transformer: worldbank_indicator
+  #   meta:
+  #     indicator_id: EN.ATM.CO2E.PC
+  #     indicator_label: CO2 emissions (metric tons per capita)
+  #     unit: metric tons per capita
+
+  - id: worldbank_internet
+    name: World Bank — uso de Internet (IT.NET.USER.ZS)
+    url: https://api.worldbank.org/v2/country/all/indicator/IT.NET.USER.ZS?format=json
+    paginated: true
+    per_page: 1000
+    format: json
+    role: indicator
+    transformer: worldbank_indicator
+    meta:
+      indicator_id: IT.NET.USER.ZS
+      indicator_label: Individuals using the Internet (% of population)
+      unit: "% of population"
+
+  - id: worldbank_urban
+    name: World Bank — población urbana (SP.URB.TOTL.IN.ZS)
+    url: https://api.worldbank.org/v2/country/all/indicator/SP.URB.TOTL.IN.ZS?format=json
+    paginated: true
+    per_page: 1000
+    format: json
+    role: indicator
+    transformer: worldbank_indicator
+    meta:
+      indicator_id: SP.URB.TOTL.IN.ZS
+      indicator_label: Urban population (% of total population)
+      unit: "% of total population"

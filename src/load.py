@@ -21,24 +21,19 @@ def run_load(write_parquet: bool = False) -> Path:
     conn = sqlite3.connect(DB_PATH)
     try:
         for name in TABLES:
-            csv_path = CLEAN / f"{name}.csv"
-            if not csv_path.exists():
-                print(f"[load] omitido (no hay CSV): {name}")
-                continue
-            df = pd.read_csv(csv_path)
+            if name == "join_orphans":
+                p = CLEAN / "join_orphans.csv"
+                if not p.exists():
+                    print(f"[load] omitido: {name}")
+                    continue
+                df = pd.read_csv(p)
+            elif name == "indicators":
+                df = pd.read_parquet(CLEAN / "indicators")
+                df["indicator_id"] = df["indicator_id"].astype(str)  # viene como categoría
+            else:
+                df = pd.read_parquet(CLEAN / f"{name}.parquet")
             df.to_sql(name, conn, index=False, if_exists="replace")
             print(f"[load] {name}: {len(df)} filas → sqlite")
-            if write_parquet:
-                pq = SERVING / f"{name}.parquet"
-                try:
-                    df.to_parquet(pq, index=False)
-                    print(f"[load] {name} → {pq}")
-                except ImportError:
-                    print(
-                        "[load] Parquet omitido: instalad pyarrow "
-                        "(pip install pyarrow)"
-                    )
-                    write_parquet = False
     finally:
         conn.close()
 
