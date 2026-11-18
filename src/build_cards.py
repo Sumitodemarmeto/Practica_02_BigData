@@ -24,7 +24,8 @@ def _card_markdown(iso3: str, countries: pd.DataFrame, languages: pd.DataFrame,
                    indicators: pd.DataFrame) -> str:
     c = countries[countries["iso3"] == iso3].iloc[0]
     langs = languages[languages["iso3"] == iso3]
-    inds = indicators[indicators["iso3"] == iso3]
+    inds = indicators[indicators["iso3"] == iso3].dropna(subset=["value"])
+    inds = inds.sort_values("year").groupby("indicator_id").tail(1)  # último año con dato
 
     lang_lines = (
         "\n".join(
@@ -44,19 +45,21 @@ def _card_markdown(iso3: str, countries: pd.DataFrame, languages: pd.DataFrame,
     # Comparativo simple: media regional del primer indicador disponible
     comparative = "_Sin indicadores para comparar._"
     if not inds.empty and "region" in countries.columns:
-        ind_id = inds.iloc[0]["indicator_id"]
+        first = inds.iloc[0]
+        ind_id, year = first["indicator_id"], first["year"]
         region = c["region"]
         peers = countries[countries["region"] == region]["iso3"]
         peer_vals = indicators[
             (indicators["iso3"].isin(peers))
             & (indicators["indicator_id"] == ind_id)
+            & (indicators["year"] == year)          # mismo año
             & indicators["value"].notna()
         ]["value"]
         if not peer_vals.empty:
             mean_v = peer_vals.astype(float).mean()
-            own = float(inds.iloc[0]["value"])
+            own = float(first["value"])
             comparative = (
-                f"Respecto a la media de **{region}** en `{ind_id}` "
+                f"Respecto a la media de **{region}** en `{ind_id}` ({year}) "
                 f"({mean_v:,.2f}): este país está en **{own:,.2f}** "
                 f"({'por encima' if own > mean_v else 'por debajo o igual'})."
             )

@@ -33,7 +33,7 @@ def _read_json(path: Path):
 def transform_countries_profile(source: Source, cfg: Config) -> dict[str, pd.DataFrame]:
     raw_path = RAW / f"{source.id}.json"
     payload = _read_json(raw_path)
-    wanted = {c.iso3 for c in cfg.focus_countries}
+    wanted = {i["cca3"] for i in payload if i.get("independent")}
 
     countries_rows = []
     language_rows = []
@@ -66,38 +66,34 @@ def transform_countries_profile(source: Source, cfg: Config) -> dict[str, pd.Dat
         "languages": pd.DataFrame(language_rows),
     }
 
+def _iso2_by_iso3() -> dict[str, str]:
+    payload = _read_json(RAW / "countries_profile.json")
+    return {i["cca3"]: i["cca2"] for i in payload if i.get("independent")}
+
 
 def transform_worldbank_indicator(source: Source, cfg: Config) -> dict[str, pd.DataFrame]:
-    rows = []
+    iso2_map = _iso2_by_iso3()
     meta = source.meta or {}
-    for country in cfg.focus_countries:
-        path = RAW / f"{source.id}_{country.iso2}.json"
-        if not path.exists():
+    payload = _read_json(RAW / f"{source.id}.json")
+    rows = []
+    for rec in payload[1]:
+        wb_code = rec.get("countryiso3code")
+        iso3 = cfg.code_equivalences.get(wb_code, wb_code)
+        if iso3 not in iso2_map:          # agregados y no-países
             continue
-        payload = _read_json(path)
-        # World Bank: [meta, [records...]]
-        if not isinstance(payload, list) or len(payload) < 2 or not payload[1]:
-            continue
-        for rec in payload[1]:
-            if rec is None:
-                continue
-            rows.append(
-                {
-                    "iso3": country.iso3,
-                    "iso2": country.iso2,
-                    "indicator_id": meta.get("indicator_id", source.id),
-                    "indicator_label": meta.get(
-                        "indicator_label",
-                        (rec.get("indicator") or {}).get("value"),
-                    ),
-                    "year": rec.get("date"),
-                    "value": rec.get("value"),
-                    "unit": meta.get("unit"),
-                    "source_id": source.id,
-                }
-            )
+        rows.append(
+            {
+                "iso3": iso3,
+                "iso2": iso2_map[iso3],
+                "indicator_id": meta.get("indicator_id", source.id),
+                "indicator_label": meta.get("indicator_label"),
+                "year": int(rec["date"]),
+                "value": rec.get("value"),   # None → vacío, nunca 0
+                "unit": meta.get("unit"),
+                "source_id": source.id,
+            }
+        )
     return {"indicators": pd.DataFrame(rows)}
-
 
 def transform_owid_life_expectancy(source: Source, cfg: Config) -> dict[str, pd.DataFrame]:
     raw_path = RAW / f"{source.id}.csv"

@@ -1,11 +1,10 @@
-"""Extract: descarga intacta → data/raw/ + manifiesto.
-
-No transforma. Añadir una URL nueva = entrada en sources.yaml.
-"""
+"""Extract: descarga intacta → data/raw/ + manifiesto."""
 
 from __future__ import annotations
 
 import csv
+import json
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,62 +13,66 @@ import requests
 from .config import Config, Source, load_config
 from .paths import MANIFEST, RAW, ensure_dirs
 
-USER_AGENT = "UCJC-DSBD-practica1/1.2 (educational ETL framework)"
+USER_AGENT = "UCJC-DSBD-practica2/1.0 (educational ETL framework)"
 TIMEOUT = 60
+RETRY_CODES = {429, 500, 502, 503, 504}
+PAUSE = 0.25  # ≤ 5 peticiones/s
 
 
-def _raw_name(source: Source, iso2: str | None = None) -> str:
-    if source.url_template and iso2:
-        return f"{source.id}_{iso2}.{source.format}"
-    return f"{source.id}.{source.format}"
+def _get(url: str, retries: int = 5) -> requests.Response:
+    for attempt in range(retries):
+        try:
+            r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": USER_AGENT})
+            if r.status_code == 200:
+                return r
+            if r.status_code not in RETRY_CODES:
+                raise RuntimeError(f"HTTP {r.status_code} no reintentable: {url}")
+        except (requests.Timeout, requests.ConnectionError):
+            pass
+        time.sleep(2 ** attempt)  # 1, 2, 4, 8, 16 s
+    raise RuntimeError(f"Reintentos agotados: {url}")
 
 
-def _download(url: str, dest: Path) -> tuple[int, int]:
-    resp = requests.get(
-        url,
-        timeout=TIMEOUT,
-        headers={"User-Agent": USER_AGENT},
-    )
-    dest.write_bytes(resp.content)
-    return resp.status_code, len(resp.content)
+def _download_paginated(url: str, per_page: int, dest: Path) -> None:
+    sep = "&" if "?" in url else "?"
+    records, page, pages, total, meta = [], 1, 1, 0, {}
+    while page <= pages:
+        payload = _get(f"{url}{sep}per_page={per_page}&page={page}").json()
+        meta, data = payload[0], payload[1] or []
+        pages, total = int(meta["pages"]), int(meta["total"])
+        records.extend(data)
+        page += 1
+        time.sleep(PAUSE)
+    if len(records) != total:
+        raise RuntimeError(f"Guardadas {len(records)} ≠ total API {total}: {url}")
+    # Mismo formato que devuelve el Banco Mundial: [meta, [registros]]
+    dest.write_text(json.dumps([meta, records]), encoding="utf-8")
 
 
 def extract_source(source: Source, cfg: Config) -> list[dict]:
-    """Descarga una fuente; si tiene plantilla, una petición por país foco."""
-    rows: list[dict] = []
     now = datetime.now(timezone.utc).isoformat()
+    url = source.resolve_url()
+    filename = f"{source.id}.{source.format}"
+    dest = RAW / filename
+    status, nbytes, note = 200, 0, ""
 
-    if source.url_template:
-        targets = cfg.focus_countries
+    if dest.exists():                      # idempotencia
+        nbytes, note = dest.stat().st_size, "cached"
     else:
-        targets = [None]
-
-    for country in targets:
-        iso2 = country.iso2 if country else ""
-        iso3 = country.iso3 if country else ""
-        url = source.resolve_url(iso2=iso2, iso3=iso3)
-        filename = _raw_name(source, iso2 or None)
-        dest = RAW / filename
         try:
-            status, nbytes = _download(url, dest)
-            note = ""
-        except requests.RequestException as exc:
-            status, nbytes = 0, 0
-            note = str(exc)
-        rows.append(
-            {
-                "timestamp_utc": now,
-                "source_id": source.id,
-                "url": url,
-                "http_status": status,
-                "bytes": nbytes,
-                "filename": filename,
-                "iso2": iso2,
-                "iso3": iso3,
-                "note": note,
-            }
-        )
-    return rows
+            if source.paginated:
+                _download_paginated(url, source.per_page, dest)
+            else:
+                dest.write_bytes(_get(url).content)
+            nbytes = dest.stat().st_size
+        except RuntimeError as exc:
+            status, note = 0, str(exc)
+
+    return [{
+        "timestamp_utc": now, "source_id": source.id, "url": url,
+        "http_status": status, "bytes": nbytes, "filename": filename,
+        "iso2": "", "iso3": "", "note": note,
+    }]
 
 
 def run_extract(cfg: Config | None = None) -> Path:
@@ -80,17 +83,8 @@ def run_extract(cfg: Config | None = None) -> Path:
         print(f"[extract] {source.id} — {source.name}")
         all_rows.extend(extract_source(source, cfg))
 
-    fieldnames = [
-        "timestamp_utc",
-        "source_id",
-        "url",
-        "http_status",
-        "bytes",
-        "filename",
-        "iso2",
-        "iso3",
-        "note",
-    ]
+    fieldnames = ["timestamp_utc", "source_id", "url", "http_status", "bytes",
+                  "filename", "iso2", "iso3", "note"]
     with MANIFEST.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
