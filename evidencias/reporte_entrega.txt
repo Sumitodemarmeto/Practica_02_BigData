@@ -1,0 +1,286 @@
+###### 0. CONTEXTO ######
+origin	git@github.com:Sumitodemarmeto/Practica_02_BigData.git (fetch)
+main
+25aa2de Requirements actualizado
+ca373f3 Movida la carpeta workflow
+86af83e Completo 'en teoría'
+d80f457 Agregados más paises a la entrada de datos
+61cc94c Inicio Ejercicio2
+Python 3.14.7
+pyspark 4.3.0
+pandas 2.3.3
+pyarrow 26.0.1
+java version "27.0.1.0.3" 2026-10-25
+
+###### 1. METADATOS WB ######
+Fecha consulta: 2026-11-18T16:56:37.614026+00:00
+indicator_id              total    pages    lastupdated
+------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1320, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              encode_chunked=req.has_header('Transfer-encoding'))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1386, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1432, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1381, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1141, in _send_output
+    self.send(msg)
+    ~~~~~~~~~^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1085, in send
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1527, in connect
+    self.sock = self._context.wrap_socket(self.sock,
+                ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+                                          server_hostname=server_hostname)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 455, in wrap_socket
+    return self.sslsocket_class._create(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sock=sock,
+        ^^^^^^^^^^
+    ...<5 lines>...
+        session=session
+        ^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1076, in _create
+    self.do_handshake()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1372, in do_handshake
+    self._sslobj.do_handshake()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1082)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 9, in <module>
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 187, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 487, in open
+    response = self._open(req, data)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 504, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 464, in _call_chain
+    result = func(*args)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1368, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        context=self._context)
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1323, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1082)>
+
+###### 2. CONFIG ######
+Fuentes totales: 6
+  - countries_profile         role=profile    transformer=countries_profile         indicator_id=—
+  - worldbank_gdp             role=indicator  transformer=worldbank_indicator       indicator_id=NY.GDP.PCAP.CD
+  - worldbank_pop             role=indicator  transformer=worldbank_indicator       indicator_id=SP.POP.TOTL
+  - worldbank_life            role=indicator  transformer=worldbank_indicator       indicator_id=SP.DYN.LE00.IN
+  - worldbank_internet        role=indicator  transformer=worldbank_indicator       indicator_id=IT.NET.USER.ZS
+  - worldbank_urban           role=indicator  transformer=worldbank_indicator       indicator_id=SP.URB.TOTL.IN.ZS
+Traceback (most recent call last):
+  File "<stdin>", line 7, in <module>
+AttributeError: 'Config' object has no attribute 'country_criterion'
+
+###### 3. ENTIDADES ACEPTADAS ######
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+ImportError: cannot import name '_accepted_iso3' from 'src.transform' (/Users/minimarmeto/Downloads/Practica/src/transform.py)
+
+###### 5.6 CIFRA A REAL ######
+source_id                 indicator_id            filas_raw  total_API  cuadra
+--------------------------------------------------------------------------------
+worldbank_gdp             NY.GDP.PCAP.CD              17556      17556      SÍ
+worldbank_pop             SP.POP.TOTL                 17556      17556      SÍ
+worldbank_life            SP.DYN.LE00.IN              17556      17556      SÍ
+worldbank_internet        IT.NET.USER.ZS              17556      17556      SÍ
+worldbank_urban           SP.URB.TOTL.IN.ZS           17556      17556      SÍ
+--------------------------------------------------------------------------------
+TOTAL A real (bruto)                                  87780
+
+###### 5.7 CIFRA B REAL ######
+<stdin>:11: FutureWarning: The default of observed=False is deprecated and will be changed to True in a future version of pandas. Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.
+Cifra B real (total clean/indicators): 63690
+Entidades distintas (iso3): 193
+Indicadores distintos: 5
+Años: 1960 → 2025
+Filas con value no nulo: 54843 (86.1%)
+Duplicados clave: 0
+
+Tipos:
+iso3                 object
+iso2                 object
+indicator_label      object
+year                  int64
+value               float64
+unit                 object
+source_id            object
+indicator_id       category
+dtype: object
+
+Desglose por indicador:
+IT.NET.USER.ZS         filas= 12738 países= 193 no_nulos=  5864 años=1960-2025
+NY.GDP.PCAP.CD         filas= 12738 países= 193 no_nulos= 10962 años=1960-2025
+SP.DYN.LE00.IN         filas= 12738 países= 193 no_nulos= 12541 años=1960-2025
+SP.POP.TOTL            filas= 12738 países= 193 no_nulos= 12738 años=1960-2025
+SP.URB.TOTL.IN.ZS      filas= 12738 países= 193 no_nulos= 12738 años=1960-2025
+
+###### 5.8 EXCLUIDOS Y HUÉRFANOS ######
+     107 data/clean/excluded_entities.csv
+       7 data/clean/join_orphans.csv
+Huérfanos por fuente:
+source_id
+worldbank_gdp         2
+worldbank_internet    1
+worldbank_life        1
+worldbank_pop         1
+worldbank_urban       1
+
+Excluidos por motivo:
+motivo
+agregado WB o entidad sin perfil    50
+no independiente (mledoze)          56
+
+###### 6. SPARK ######
+(15) Filter
+Input [3]: [year#3L, value#4, indicator_id#7]
+Condition : isnotnull(value#4)
+
+(16) Project
+Output [2]: [indicator_id#7, concat(cast((FLOOR((cast(year#3L as double) / 10.0)) * 10) as string), s) AS decade#9]
+Input [3]: [year#3L, value#4, indicator_id#7]
+
+(17) HashAggregate
+Input [2]: [indicator_id#7, decade#9]
+Keys [2]: [indicator_id#7, decade#9]
+Functions [1]: [partial_count(1)]
+Aggregate Attributes [1]: [count#21L]
+Results [3]: [indicator_id#7, decade#9, count#22L]
+
+(18) Exchange
+Input [3]: [indicator_id#7, decade#9, count#22L]
+Arguments: hashpartitioning(indicator_id#7, decade#9, 200), ENSURE_REQUIREMENTS, [plan_id=47]
+
+(19) HashAggregate
+Input [3]: [indicator_id#7, decade#9, count#22L]
+Keys [2]: [indicator_id#7, decade#9]
+Functions [1]: [count(1)]
+Aggregate Attributes [1]: [count(1)#20L]
+Results [3]: [indicator_id#7, decade#9, count(1)#20L AS n#10L]
+
+(20) Exchange
+Input [3]: [indicator_id#7, decade#9, n#10L]
+Arguments: rangepartitioning(indicator_id#7 ASC NULLS FIRST, decade#9 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id=50]
+
+(21) Sort
+Input [3]: [indicator_id#7, decade#9, n#10L]
+Arguments: [indicator_id#7 ASC NULLS FIRST, decade#9 ASC NULLS FIRST], true, 0
+
+(22) AdaptiveSparkPlan
+Output [3]: [indicator_id#7, decade#9, n#10L]
+Arguments: isFinalPlan=true
+
+
+RDD=32 DF=32 SQL=32 SQLite=32 → coinciden: True
+--- salida parquet ---
+total 24
+drwxr-xr-x@ 6 minimarmeto  staff   192 Nov 18 17:56 .
+drwxr-xr-x@ 3 minimarmeto  staff    96 Nov 18 17:56 ..
+-rw-r--r--@ 1 minimarmeto  staff     8 Nov 18 17:56 ._SUCCESS.crc
+-rw-r--r--@ 1 minimarmeto  staff    20 Nov 18 17:56 .part-00000-8d66ae1f-9458-47a4-9112-c0d0608a2099-c000.snappy.parquet.crc
+-rw-r--r--@ 1 minimarmeto  staff     0 Nov 18 17:56 _SUCCESS
+-rw-r--r--@ 1 minimarmeto  staff  1342 Nov 18 17:56 part-00000-8d66ae1f-9458-47a4-9112-c0d0608a2099-c000.snappy.parquet
+ 12K	data/serving/spark/cobertura_decada/
+--- event log ---
+total 0
+drwxr-xr-x@ 7 minimarmeto  staff  224 Nov 18 17:56 .
+drwxr-xr-x@ 3 minimarmeto  staff   96 Nov 18 17:34 ..
+drwxr-xr-x@ 5 minimarmeto  staff  160 Nov 18 17:43 eventlog_v2_local-1795015474961
+drwxr-xr-x@ 5 minimarmeto  staff  160 Nov 18 17:43 eventlog_v2_local-1795016883188
+drwxr-xr-x@ 5 minimarmeto  staff  160 Nov 18 17:43 eventlog_v2_local-1795016902401
+drwxrwx---@ 5 minimarmeto  staff  160 Nov 18 17:55 eventlog_v2_local-1795020924081
+drwxrwx---@ 5 minimarmeto  staff  160 Nov 18 17:56 eventlog_v2_local-1795021004959
+
+###### 7. IDEMPOTENCIA (2.ª ejecución) ######
+      25 data/raw/manifest.csv
+[cards] /Users/minimarmeto/Downloads/Practica/cards/SWZ.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/SYC.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/SYR.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TCD.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TGO.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/THA.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TJK.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TKM.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TLS.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TON.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TTO.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TUN.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TUR.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TUV.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/TZA.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/UGA.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/UKR.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/URY.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/USA.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/UZB.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/VAT.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/VCT.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/VEN.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/VNM.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/VUT.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/WSM.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/YEM.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/ZAF.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/ZMB.md
+[cards] /Users/minimarmeto/Downloads/Practica/cards/ZWE.md
+Runs distintos: 5
+Filas totales: 30
+
+Por run y note:
+run_id                   note  
+20261118T155732Z-6fb758  cached    6
+20261118T163409Z-8677eb  cached    6
+20261118T165438Z-e24878  cached    6
+20261118T165551Z-363247  cached    6
+20261118T165652Z-a9a79f  cached    6
+
+###### 8. CSV vs PARQUET ######
+Filas: 63690
+CSV:        6,445,899 bytes (6.15 MB)
+Parquet:      481,004 bytes (0.46 MB)
+Ratio:   13.4×
+
+###### 9. GIT ######
+--- historial ---
+25aa2de Requirements actualizado
+ca373f3 Movida la carpeta workflow
+86af83e Completo 'en teoría'
+d80f457 Agregados más paises a la entrada de datos
+61cc94c Inicio Ejercicio2
+2c6b3d5 Initial commit
+--- commits a ENTREGA_02.md (orden cronológico) ---
+--- commits a src/ y spark/ ---
+2c6b3d5 Initial commit
+d80f457 Agregados más paises a la entrada de datos
+86af83e Completo 'en teoría'
+--- tags ---
+--- status ---
+?? BUGS.md
+?? CONTRIBUTORS.md
+?? ENTREGA_02.md
+?? evidencias/
+?? logs/spark-events/eventlog_v2_local-1795020924081/
+?? logs/spark-events/eventlog_v2_local-1795021004959/
