@@ -1,5 +1,4 @@
 """Cobertura (indicator_id, década) con RDD, DataFrame y SQL; validada contra SQLite."""
-
 import shutil
 import sqlite3
 import sys
@@ -48,42 +47,49 @@ def main() -> int:
         )
         print(f"[job_01] Particiones: {df.rdd.getNumPartitions()}  Filas: {df.count()}")
 
-        # 1. RDD
-        rdd = (
-            df.select("indicator_id", "year").rdd
-            .map(lambda r: ((r.indicator_id, decade_of(int(r.year))), 1))
-            .reduceByKey(lambda a, b: a + b)
-        )
-        res_rdd = {(k[0], k[1], v) for k, v in rdd.collect()}
 
-        # 2. DataFrame — cast("int") ANTES de * 10
+        rdd_pairs = df.select("indicator_id", "year", "iso3").rdd.map(
+            lambda r: ((r.indicator_id, decade_of(int(r.year))), (1, {r.iso3}))
+        )
+        rdd_reduced = rdd_pairs.reduceByKey(lambda a, b: (a[0] + b[0], a[1] | b[1]))
+        res_rdd = {(k[0], k[1], v[0], len(v[1])) for k, v in rdd_reduced.collect()}
+
+
         d = df.withColumn(
             "decade",
             F.concat(F.floor(F.col("year") / 10).cast("int") * 10, F.lit("s")),
         )
         by_df = (
             d.groupBy("indicator_id", "decade")
-            .agg(F.count("*").alias("n"))
+            .agg(
+                F.count("*").alias("n"),
+                F.countDistinct("iso3").alias("paises")
+            )
             .orderBy("indicator_id", "decade")
         )
-        res_df = {(r.indicator_id, r.decade, r.n) for r in by_df.collect()}
+        res_df = {(r.indicator_id, r.decade, r.n, r.paises) for r in by_df.collect()}
 
-        # 3. SQL
+
         d.createOrReplaceTempView("indicators")
         by_sql = spark.sql(
-            "SELECT indicator_id, decade, COUNT(*) AS n "
-            "FROM indicators GROUP BY indicator_id, decade"
+            """
+            SELECT indicator_id, decade, COUNT(*) AS n, COUNT(DISTINCT iso3) AS paises
+            FROM indicators GROUP BY indicator_id, decade
+            """
         )
-        res_sql = {(r.indicator_id, r.decade, r.n) for r in by_sql.collect()}
+        res_sql = {(r.indicator_id, r.decade, r.n, r.paises) for r in by_sql.collect()}
 
-        # 4. SQLite
+
         with sqlite3.connect(SQLITE) as conn:
             rows = conn.execute(
-                "SELECT indicator_id, CAST((year/10)*10 AS TEXT) || 's', COUNT(*) "
-                "FROM indicators WHERE value IS NOT NULL "
-                "GROUP BY indicator_id, year/10"
+                """
+                SELECT indicator_id, CAST((year/10)*10 AS TEXT) || 's',
+                       COUNT(*), COUNT(DISTINCT iso3)
+                FROM indicators WHERE value IS NOT NULL
+                GROUP BY indicator_id, year/10
+                """
             ).fetchall()
-        res_sqlite = {(r[0], r[1], r[2]) for r in rows}
+        res_sqlite = {(r[0], r[1], r[2], r[3]) for r in rows}
 
         print("[job_01] Plan físico DataFrame:")
         by_df.explain(mode="formatted")
@@ -97,13 +103,6 @@ def main() -> int:
         ok = res_rdd == res_df == res_sql == res_sqlite
         print(f"[job_01] RDD={len(res_rdd)} DF={len(res_df)} "
               f"SQL={len(res_sql)} SQLite={len(res_sqlite)} → coinciden: {ok}")
-        if not ok:
-            if res_rdd != res_df:
-                print("[job_01] RDD Δ DF:", sorted(res_rdd ^ res_df)[:10])
-            if res_df != res_sql:
-                print("[job_01] DF Δ SQL:", sorted(res_df ^ res_sql)[:10])
-            if res_rdd != res_sqlite:
-                print("[job_01] RDD Δ SQLite:", sorted(res_rdd ^ res_sqlite)[:10])
         return 0 if ok else 1
     finally:
         spark.stop()
